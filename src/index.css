@@ -1,11 +1,20 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 
 body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Safe area utilities for iOS */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0);
 }

@@ -86,6 +86,9 @@ describe('beanRepository', () => {
     it('updates specified fields', async () => {
       const bean = await createBean({ name: 'Original', roaster: 'Original' });
 
+      // Small delay to ensure updatedAt differs from createdAt
+      await new Promise((resolve) => setTimeout(resolve, 2));
+
       const updated = await updateBean({
         id: bean.id,
         name: 'Updated Name',
