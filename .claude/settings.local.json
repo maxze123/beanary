@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node:*)",
+      "Bash(cd /c/Users/Max/Documents/Projects/DialInApp && npm create vite@latest . -- --template react-ts 2>&1)",
+      "Bash(cd:*)",
+      "Bash(cd /c/Users/Max/Documents/Projects/DialInApp && npm install 2>&1)",
+      "Bash(cd /c/Users/Max/Documents/Projects/DialInApp && npm run lint 2>&1)",
+      "Bash(cd /c/Users/Max/Documents/Projects/DialInApp && npm run test:run 2>&1)",
+      "Bash(cd /c/Users/Max/Documents/Projects/DialInApp && npm run build 2>&1)",
+      "Bash(cd /c/Users/Max/Documents/Projects/DialInApp && echo \"=== LINT ===\" && npm run lint 2>&1 && echo \"=== TEST ===\" && npm run test:run 2>&1 && echo \"=== BUILD ===\" && npm run build 2>&1)",
+      "Bash(cd /c/Users/Max/Documents/Projects/DialInApp && npx tsc --noEmit 2>&1)",
+      "Bash(tail:*)",
+      "Bash(cd /c/Users/Max/Documents/Projects/DialInApp && npm run lint 2>&1 && npm run build 2>&1)"
+    ]
+  }
+}
