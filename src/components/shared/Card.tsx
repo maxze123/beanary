@@ -29,13 +29,16 @@ export function Card({ children, padding = 'md', className = '', ...props }: Car
 }
 
 interface CardDividerProps {
+  children?: ReactNode;
   className?: string;
 }
 
-export function CardDivider({ className = '' }: CardDividerProps) {
+export function CardDivider({ children, className = '' }: CardDividerProps) {
   return (
     <div
       className={`border-t border-crema-200 dark:border-roast-700 mt-3 pt-3 ${className}`}
-    />
+    >
+      {children}
+    </div>
   );
 }
