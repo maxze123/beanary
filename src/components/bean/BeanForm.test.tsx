@@ -34,6 +34,9 @@ describe('BeanForm', () => {
       roaster: 'Test Roaster',
       roastDate: null,
       notes: '',
+      origin: null,
+      process: null,
+      roastLevel: null,
     });
   });
 

@@ -4,6 +4,8 @@ import { useBeanStore } from '../stores/beanStore';
 import { useShotStore } from '../stores/shotStore';
 import { ShotForm, ShotComparison } from '../components/shot';
 import { Button } from '../components/shared';
+import { trackShotLogged, trackBeanDialed, sendTelemetry } from '../lib';
+import { useSettingsStore } from '../stores/settingsStore';
 import type { CreateShotInput, Shot } from '../types';
 
 type PageState = 'form' | 'result';
@@ -16,6 +18,7 @@ export function LogShot() {
 
   const { currentBean, loadBean, dialBean } = useBeanStore();
   const { shots, latestShot, addShot, loadShots, isLoading: shotLoading } = useShotStore();
+  const { equipment, telemetryEnabled } = useSettingsStore();
 
   const [pageState, setPageState] = useState<PageState>('form');
   const [justLoggedShot, setJustLoggedShot] = useState<typeof latestShot>(null);
@@ -57,6 +60,11 @@ export function LogShot() {
   const handleSubmit = async (input: CreateShotInput) => {
     try {
       const shot = await addShot(input);
+      trackShotLogged({
+        shotNumber: shot.shotNumber,
+        balance: shot.taste.balance,
+        ratio: shot.ratio,
+      });
       setJustLoggedShot(shot);
       setPageState('result');
     } catch (e) {
@@ -69,6 +77,28 @@ export function LogShot() {
     setIsDialing(true);
     try {
       await dialBean(beanId, justLoggedShot.id);
+
+      trackBeanDialed({
+        shotsToDialIn: shots.length,
+        hasOrigin: !!currentBean?.origin,
+        hasRoastLevel: !!currentBean?.roastLevel,
+      });
+
+      if (telemetryEnabled && currentBean) {
+        sendTelemetry({
+          grinder: equipment.grinder || undefined,
+          machine: equipment.machine || undefined,
+          origin: currentBean.origin || undefined,
+          process: currentBean.process || undefined,
+          roast_level: currentBean.roastLevel || undefined,
+          shots_to_dial_in: shots.length,
+          final_ratio: justLoggedShot.ratio,
+          final_time: justLoggedShot.timeSeconds,
+          final_dose: justLoggedShot.doseGrams,
+          final_yield: justLoggedShot.yieldGrams,
+        });
+      }
+
       navigate(`/bean/${beanId}`);
     } catch (e) {
       // Error handled in store
@@ -132,6 +162,11 @@ export function LogShot() {
             <ShotComparison
               currentShot={justLoggedShot}
               previousShot={previousShot}
+              beanMetadata={{
+                origin: currentBean?.origin,
+                process: currentBean?.process,
+                roastLevel: currentBean?.roastLevel,
+              }}
               onMarkAsDialed={handleMarkAsDialed}
               isDialLoading={isDialing}
             />

@@ -31,6 +31,21 @@ vi.mock('../stores/themeStore', () => ({
   }),
 }));
 
+vi.mock('../stores/settingsStore', () => ({
+  useSettingsStore: () => ({
+    equipment: { grinder: '', machine: '' },
+    telemetryEnabled: false,
+    setEquipment: vi.fn(),
+    setTelemetryEnabled: vi.fn(),
+  }),
+}));
+
+vi.mock('../lib', () => ({
+  trackTelemetryToggle: vi.fn(),
+  TELEMETRY_DATA_POINTS: ['Grinder model', 'Espresso machine model'],
+  TELEMETRY_NOT_COLLECTED: ['Your name or email'],
+}));
+
 describe('Settings', () => {
   beforeEach(() => {
     vi.clearAllMocks();

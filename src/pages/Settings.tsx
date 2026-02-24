@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Button, Card, ConfirmModal } from '../components/shared';
+import { Button, Card, ConfirmModal, Select, InfoModal } from '../components/shared';
 import { exportData, downloadExport } from '../utils/export';
 import { previewImport, importData, readFileAsJSON } from '../utils/import';
 import type { ImportPreview } from '../utils/import';
@@ -7,12 +7,16 @@ import { resetDatabase } from '../db';
 import { useBeanStore } from '../stores/beanStore';
 import { useShotStore } from '../stores/shotStore';
 import { useThemeStore } from '../stores/themeStore';
+import { useSettingsStore } from '../stores/settingsStore';
+import { trackTelemetryToggle, TELEMETRY_DATA_POINTS, TELEMETRY_NOT_COLLECTED } from '../lib';
+import { COMMON_GRINDERS, COMMON_MACHINES } from '../types';
 import type { DataExport } from '../types';
 
 export function Settings() {
   const [isExporting, setIsExporting] = useState(false);
   const [showClearModal, setShowClearModal] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
+  const [showTelemetryInfo, setShowTelemetryInfo] = useState(false);
 
   // Import state
   const [importPreview, setImportPreview] = useState<ImportPreview | null>(null);
@@ -24,6 +28,7 @@ export function Settings() {
   const { loadBeans } = useBeanStore();
   const { clearShots } = useShotStore();
   const { mode, setMode } = useThemeStore();
+  const { equipment, telemetryEnabled, setEquipment, setTelemetryEnabled } = useSettingsStore();
 
   const handleExport = async () => {
     setIsExporting(true);
@@ -131,6 +136,78 @@ export function Settings() {
           </div>
         </Card>
 
+        {/* Equipment Profile */}
+        <Card>
+          <h2 className="font-medium text-espresso-900 dark:text-steam-50 mb-3">
+            My Equipment
+          </h2>
+          <p className="text-sm text-espresso-700/70 dark:text-steam-300 mb-4">
+            Help us provide better recommendations by telling us what you use.
+          </p>
+          <div className="space-y-3">
+            <Select
+              label="Grinder"
+              placeholder="Select your grinder..."
+              value={equipment.grinder}
+              onChange={(e) => setEquipment({ grinder: e.target.value })}
+              options={COMMON_GRINDERS.map((g) => ({ value: g, label: g }))}
+            />
+            <Select
+              label="Machine"
+              placeholder="Select your machine..."
+              value={equipment.machine}
+              onChange={(e) => setEquipment({ machine: e.target.value })}
+              options={COMMON_MACHINES.map((m) => ({ value: m, label: m }))}
+            />
+          </div>
+        </Card>
+
+        {/* Anonymous Telemetry */}
+        <Card>
+          <div className="flex items-start justify-between mb-3">
+            <h2 className="font-medium text-espresso-900 dark:text-steam-50">
+              Help Improve Beanary
+            </h2>
+            <button
+              onClick={() => setShowTelemetryInfo(true)}
+              className="p-1 text-espresso-700/50 dark:text-steam-400 hover:text-caramel-500"
+              aria-label="Learn more about telemetry"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </button>
+          </div>
+          <p className="text-sm text-espresso-700/70 dark:text-steam-300 mb-4">
+            Share anonymous dial-in data to help us build better recommendations for everyone.
+          </p>
+          <label className="flex items-center gap-3 cursor-pointer">
+            <div className="relative">
+              <input
+                type="checkbox"
+                checked={telemetryEnabled}
+                onChange={(e) => {
+                  setTelemetryEnabled(e.target.checked);
+                  trackTelemetryToggle(e.target.checked);
+                }}
+                className="sr-only"
+              />
+              <div className={`
+                w-10 h-6 rounded-full transition-colors
+                ${telemetryEnabled ? 'bg-caramel-500' : 'bg-crema-300 dark:bg-roast-600'}
+              `}>
+                <div className={`
+                  absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform
+                  ${telemetryEnabled ? 'translate-x-4' : 'translate-x-0'}
+                `} />
+              </div>
+            </div>
+            <span className="text-sm text-espresso-900 dark:text-steam-50">
+              Share anonymous data
+            </span>
+          </label>
+        </Card>
+
         {/* Data Management */}
         <Card>
           <h2 className="font-medium text-espresso-900 dark:text-steam-50 mb-3">
@@ -190,7 +267,7 @@ export function Settings() {
             <p>
               Beanary helps you dial in your espresso by tracking shots and remembering what worked.
             </p>
-            <p>Version 0.2.0 (Phase 0 Beta)</p>
+            <p>Version 0.3.0 (Phase 0 Beta)</p>
           </div>
         </Card>
 
@@ -266,6 +343,45 @@ export function Settings() {
         cancelLabel="Cancel"
         variant="danger"
       />
+
+      {/* Telemetry Info Modal */}
+      <InfoModal
+        isOpen={showTelemetryInfo}
+        onClose={() => setShowTelemetryInfo(false)}
+        title="About Anonymous Data Sharing"
+      >
+        <div className="space-y-4">
+          <div>
+            <h3 className="font-medium text-espresso-900 dark:text-steam-50 mb-2">
+              What we collect:
+            </h3>
+            <ul className="text-sm text-espresso-700/70 dark:text-steam-300 space-y-1">
+              {TELEMETRY_DATA_POINTS.map((point) => (
+                <li key={point} className="flex items-start gap-2">
+                  <span className="text-dialed dark:text-dialed-dm-text">•</span>
+                  {point}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h3 className="font-medium text-espresso-900 dark:text-steam-50 mb-2">
+              What we never collect:
+            </h3>
+            <ul className="text-sm text-espresso-700/70 dark:text-steam-300 space-y-1">
+              {TELEMETRY_NOT_COLLECTED.map((point) => (
+                <li key={point} className="flex items-start gap-2">
+                  <span className="text-red-500">✕</span>
+                  {point}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <p className="text-sm text-espresso-700/70 dark:text-steam-300">
+            This data helps us understand what equipment and beans are popular, and improve our dial-in recommendations for everyone.
+          </p>
+        </div>
+      </InfoModal>
     </div>
   );
 }

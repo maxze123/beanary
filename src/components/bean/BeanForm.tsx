@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Button, Input } from '../shared';
+import { Button, Input, Select } from '../shared';
+import { COMMON_ORIGINS, type BeanProcess, type RoastLevel } from '../../types';
 import type { CreateBeanInput } from '../../types';
 
 interface BeanFormProps {
@@ -21,6 +22,9 @@ export function BeanForm({
   const [roaster, setRoaster] = useState(initialValues.roaster || '');
   const [roastDate, setRoastDate] = useState(initialValues.roastDate || '');
   const [notes, setNotes] = useState(initialValues.notes || '');
+  const [origin, setOrigin] = useState(initialValues.origin || '');
+  const [process, setProcess] = useState<BeanProcess | ''>(initialValues.process || '');
+  const [roastLevel, setRoastLevel] = useState<RoastLevel | ''>(initialValues.roastLevel || '');
 
   const [errors, setErrors] = useState<{ name?: string; roaster?: string }>({});
 
@@ -48,6 +52,9 @@ export function BeanForm({
       roaster: roaster.trim(),
       roastDate: roastDate || null,
       notes: notes.trim(),
+      origin: origin || null,
+      process: process || null,
+      roastLevel: roastLevel || null,
     });
   };
 
@@ -77,6 +84,44 @@ export function BeanForm({
         value={roastDate}
         onChange={(e) => setRoastDate(e.target.value)}
         disabled={isLoading}
+      />
+
+      <Select
+        label="Origin (optional)"
+        placeholder="Select origin..."
+        value={origin}
+        onChange={(e) => setOrigin(e.target.value)}
+        disabled={isLoading}
+        options={COMMON_ORIGINS.map((o) => ({ value: o, label: o }))}
+      />
+
+      <Select
+        label="Process (optional)"
+        placeholder="Select process..."
+        value={process}
+        onChange={(e) => setProcess(e.target.value as BeanProcess | '')}
+        disabled={isLoading}
+        options={[
+          { value: 'washed', label: 'Washed' },
+          { value: 'natural', label: 'Natural' },
+          { value: 'honey', label: 'Honey' },
+          { value: 'anaerobic', label: 'Anaerobic' },
+          { value: 'other', label: 'Other' },
+        ]}
+      />
+
+      <Select
+        label="Roast Level (optional)"
+        placeholder="Select roast level..."
+        value={roastLevel}
+        onChange={(e) => setRoastLevel(e.target.value as RoastLevel | '')}
+        disabled={isLoading}
+        options={[
+          { value: 'light', label: 'Light' },
+          { value: 'medium', label: 'Medium' },
+          { value: 'medium-dark', label: 'Medium-Dark' },
+          { value: 'dark', label: 'Dark' },
+        ]}
       />
 
       <div>

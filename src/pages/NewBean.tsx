@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useBeanStore } from '../stores/beanStore';
 import { BeanForm } from '../components/bean';
+import { trackBeanAdded } from '../lib';
 
 export function NewBean() {
   const navigate = useNavigate();
@@ -9,6 +10,11 @@ export function NewBean() {
   const handleSubmit = async (values: Parameters<typeof addBean>[0]) => {
     try {
       const bean = await addBean(values);
+      trackBeanAdded({
+        hasOrigin: !!values.origin,
+        hasProcess: !!values.process,
+        hasRoastLevel: !!values.roastLevel,
+      });
       navigate(`/bean/${bean.id}`);
     } catch (e) {
       // Error is handled in store

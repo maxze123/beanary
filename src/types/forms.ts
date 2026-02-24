@@ -1,4 +1,5 @@
 import type { TasteFeedback } from './shot';
+import type { BeanProcess, RoastLevel } from './bean';
 
 /**
  * Input for creating a new bean.
@@ -9,6 +10,9 @@ export interface CreateBeanInput {
   roaster: string;
   roastDate?: string | null;
   notes?: string;
+  origin?: string | null;
+  process?: BeanProcess | null;
+  roastLevel?: RoastLevel | null;
 }
 
 /**

@@ -10,6 +10,9 @@ export const sampleBean: Bean = {
   roastDate: '2026-02-15',
   rating: 4,
   notes: 'Floral, tea-like. Works well as a longer ratio.',
+  origin: 'Ethiopia',
+  process: 'washed',
+  roastLevel: 'light',
   dialedRecipe: {
     doseGrams: 18,
     yieldGrams: 40,

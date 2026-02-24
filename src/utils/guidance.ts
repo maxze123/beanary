@@ -9,17 +9,70 @@ const TIME_NORMAL_MIN = 22;
 const TIME_NORMAL_MAX = 32;
 
 /**
+ * Bean metadata for origin-aware guidance.
+ */
+export interface BeanMetadata {
+  origin?: string | null;
+  process?: string | null;
+  roastLevel?: string | null;
+}
+
+/**
+ * Extended guidance input with optional bean metadata.
+ */
+export interface ExtendedGuidanceInput extends GuidanceInput {
+  beanMetadata?: BeanMetadata;
+}
+
+/**
+ * Get origin-specific starting tips.
+ */
+function getOriginTip(origin: string | null | undefined): string | null {
+  if (!origin) return null;
+
+  const tips: Record<string, string> = {
+    Brazil:
+      'Brazilian beans often flow faster and are forgiving. Consider starting slightly finer.',
+    Ethiopia:
+      'Ethiopian coffees can be dense, especially naturals. Start medium and adjust based on taste.',
+    Kenya: 'Kenyan beans are often dense and bright. May need a finer grind for full extraction.',
+    Colombia: 'Colombian coffees are generally balanced and forgiving. A good baseline bean.',
+    Guatemala: 'Guatemalan beans often have good body. Standard grind settings usually work well.',
+    Indonesia:
+      'Indonesian coffees (Sumatra, Java) often benefit from a coarser grind due to lower density.',
+  };
+
+  return tips[origin] || null;
+}
+
+/**
+ * Get roast-level-specific tips.
+ */
+function getRoastTip(roastLevel: string | null | undefined): string | null {
+  if (!roastLevel) return null;
+
+  const tips: Record<string, string> = {
+    light: 'Light roasts are denser and need more extraction. Grind finer and consider longer ratios (1:2.2+).',
+    medium: 'Medium roasts are versatile. Start with a standard 1:2 ratio.',
+    'medium-dark': 'Medium-dark roasts extract easier. Be careful not to over-extract.',
+    dark: 'Dark roasts are brittle and extract quickly. Grind coarser and pull shorter (1:1.5-2).',
+  };
+
+  return tips[roastLevel] || null;
+}
+
+/**
  * Generate guidance based on shot data.
  * Uses rule-based logic to suggest adjustments.
  */
-export function generateGuidance(input: GuidanceInput): GuidanceSuggestion {
-  const { currentShot, previousShot } = input;
+export function generateGuidance(input: ExtendedGuidanceInput): GuidanceSuggestion {
+  const { currentShot, previousShot, beanMetadata } = input;
   const { balance } = currentShot.taste;
   const time = currentShot.timeSeconds;
 
-  // First shot - give general guidance
+  // First shot - give guidance based on bean metadata if available
   if (!previousShot) {
-    return getFirstShotGuidance(balance, time);
+    return getFirstShotGuidance(balance, time, beanMetadata);
   }
 
   // Balanced shot - encourage locking it in
@@ -54,7 +107,11 @@ export function generateGuidance(input: GuidanceInput): GuidanceSuggestion {
 /**
  * Guidance for the first shot of a dial-in session.
  */
-function getFirstShotGuidance(balance: number, time: number): GuidanceSuggestion {
+function getFirstShotGuidance(
+  balance: number,
+  time: number,
+  metadata?: BeanMetadata
+): GuidanceSuggestion {
   if (balance === 0) {
     return {
       action: 'none',
@@ -64,38 +121,43 @@ function getFirstShotGuidance(balance: number, time: number): GuidanceSuggestion
     };
   }
 
+  const originTip = getOriginTip(metadata?.origin);
+  const roastTip = getRoastTip(metadata?.roastLevel);
+
   if (balance < 0) {
     // Sour first shot
+    let reasoning: string;
     if (time < TIME_FAST) {
-      return {
-        action: 'grind-finer',
-        message: 'Grind finer',
-        confidence: 'high',
-        reasoning: `Shot ran fast (${time}s) and tastes sour. Finer grind will slow extraction and add sweetness.`,
-      };
+      reasoning = `Shot ran fast (${time}s) and tastes sour. Finer grind will slow extraction and add sweetness.`;
+    } else {
+      reasoning = `Shot tastes sour at ${time}s. A finer grind should help extract more sweetness.`;
     }
+    if (originTip) reasoning += ` Note: ${originTip}`;
+    if (roastTip) reasoning += ` ${roastTip}`;
+
     return {
       action: 'grind-finer',
-      message: 'Try grinding finer',
-      confidence: 'medium',
-      reasoning: `Shot tastes sour at ${time}s. A finer grind should help extract more sweetness.`,
+      message: time < TIME_FAST ? 'Grind finer' : 'Try grinding finer',
+      confidence: time < TIME_FAST ? 'high' : 'medium',
+      reasoning,
     };
   }
 
   // Bitter first shot
+  let reasoning: string;
   if (time > TIME_SLOW) {
-    return {
-      action: 'grind-coarser',
-      message: 'Grind coarser',
-      confidence: 'high',
-      reasoning: `Shot ran slow (${time}s) and tastes bitter. Coarser grind will speed up extraction and reduce bitterness.`,
-    };
+    reasoning = `Shot ran slow (${time}s) and tastes bitter. Coarser grind will speed up extraction and reduce bitterness.`;
+  } else {
+    reasoning = `Shot tastes bitter at ${time}s. A coarser grind should reduce over-extraction.`;
   }
+  if (originTip) reasoning += ` Note: ${originTip}`;
+  if (roastTip) reasoning += ` ${roastTip}`;
+
   return {
     action: 'grind-coarser',
-    message: 'Try grinding coarser',
-    confidence: 'medium',
-    reasoning: `Shot tastes bitter at ${time}s. A coarser grind should reduce over-extraction.`,
+    message: time > TIME_SLOW ? 'Grind coarser' : 'Try grinding coarser',
+    confidence: time > TIME_SLOW ? 'high' : 'medium',
+    reasoning,
   };
 }
 

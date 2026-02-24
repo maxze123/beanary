@@ -1,12 +1,13 @@
 import type { Shot } from '../../types';
 import { Card } from '../shared';
 import { formatRatio, getBalanceLabel, getBalanceColor } from '../../utils/calculations';
-import { generateGuidance } from '../../utils/guidance';
+import { generateGuidance, type BeanMetadata } from '../../utils/guidance';
 import { GuidanceCard } from '../guidance';
 
 interface ShotComparisonProps {
   currentShot: Shot;
   previousShot?: Shot | null;
+  beanMetadata?: BeanMetadata;
   onMarkAsDialed?: () => void;
   isDialLoading?: boolean;
 }
@@ -14,6 +15,7 @@ interface ShotComparisonProps {
 export function ShotComparison({
   currentShot,
   previousShot,
+  beanMetadata,
   onMarkAsDialed,
   isDialLoading,
 }: ShotComparisonProps) {
@@ -21,6 +23,7 @@ export function ShotComparison({
   const guidance = generateGuidance({
     currentShot,
     previousShot: previousShot || null,
+    beanMetadata,
   });
 
   const formatDelta = (current: number, previous: number, unit: string): string => {

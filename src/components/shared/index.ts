@@ -6,3 +6,5 @@ export { Modal, ConfirmModal } from './Modal';
 export { EmptyState } from './EmptyState';
 export { StarRating } from './StarRating';
 export { Badge, DialedBadge, ProgressBadge } from './Badge';
+export { Select } from './Select';
+export { InfoModal } from './InfoModal';

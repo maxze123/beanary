@@ -1,4 +1,35 @@
 /**
+ * Bean processing methods.
+ */
+export type BeanProcess = 'washed' | 'natural' | 'honey' | 'anaerobic' | 'other';
+
+/**
+ * Roast levels.
+ */
+export type RoastLevel = 'light' | 'medium' | 'medium-dark' | 'dark';
+
+/**
+ * Common coffee origins for suggestions.
+ */
+export const COMMON_ORIGINS = [
+  'Ethiopia',
+  'Kenya',
+  'Colombia',
+  'Brazil',
+  'Guatemala',
+  'Costa Rica',
+  'Panama',
+  'Peru',
+  'Rwanda',
+  'Burundi',
+  'Indonesia',
+  'Vietnam',
+  'Yemen',
+  'Blend',
+  'Other',
+];
+
+/**
  * Represents a coffee bean in the user's library.
  * The primary object users interact with.
  */
@@ -20,6 +51,15 @@ export interface Bean {
 
   /** Free-form notes about this bean */
   notes: string;
+
+  /** Country/region of origin (optional) */
+  origin: string | null;
+
+  /** Processing method (optional) */
+  process: BeanProcess | null;
+
+  /** Roast level (optional) */
+  roastLevel: RoastLevel | null;
 
   /** The recipe the user landed on when dialing in */
   dialedRecipe: DialedRecipe | null;

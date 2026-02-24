@@ -1,5 +1,6 @@
 // Bean types
-export type { Bean, DialedRecipe } from './bean';
+export type { Bean, DialedRecipe, BeanProcess, RoastLevel } from './bean';
+export { COMMON_ORIGINS } from './bean';
 
 // Shot types
 export type { Shot, TasteFeedback, BalanceValue } from './shot';
@@ -18,3 +19,7 @@ export type { CreateBeanInput, UpdateBeanInput, CreateShotInput } from './forms'
 // Export types
 export type { DataExport } from './export';
 export { EXPORT_VERSION } from './export';
+
+// Settings types
+export type { EquipmentProfile, AppSettings } from './settings';
+export { COMMON_GRINDERS, COMMON_MACHINES } from './settings';
