@@ -90,13 +90,13 @@ export function ShotComparison({
           </span>
           <div className="grid grid-cols-3 gap-2 text-center text-sm">
             <div>
-              <span className="text-espresso-700/60 dark:text-steam-400">Yield</span>
+              <span className="text-espresso-700/60 dark:text-steam-400">&#916; Yield</span>
               <p className="font-medium text-espresso-900 dark:text-steam-50">
                 {formatDelta(currentShot.yieldGrams, previousShot.yieldGrams, 'g')}
               </p>
             </div>
             <div>
-              <span className="text-espresso-700/60 dark:text-steam-400">Time</span>
+              <span className="text-espresso-700/60 dark:text-steam-400">&#916; Time</span>
               <p className="font-medium text-espresso-900 dark:text-steam-50">
                 {formatDelta(currentShot.timeSeconds, previousShot.timeSeconds, 's')}
               </p>

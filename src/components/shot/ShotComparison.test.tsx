@@ -83,6 +83,16 @@ describe('ShotComparison', () => {
     expect(screen.getByText('Grind finer')).toBeInTheDocument();
   });
 
+  it('shows delta symbols in comparison labels', () => {
+    const current = createMockShot({ shotNumber: 2, yieldGrams: 40 });
+    const previous = createMockShot({ shotNumber: 1, yieldGrams: 36 });
+
+    render(<ShotComparison currentShot={current} previousShot={previous} />);
+
+    expect(screen.getByText('Δ Yield')).toBeInTheDocument();
+    expect(screen.getByText('Δ Time')).toBeInTheDocument();
+  });
+
   it('does not show "Mark as Dialed" for non-balanced shots', () => {
     const shot = createMockShot({ taste: { balance: -1 } });
     render(<ShotComparison currentShot={shot} onMarkAsDialed={() => {}} />);
