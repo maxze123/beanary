@@ -1,6 +1,8 @@
 import type { Shot } from '../../types';
 import { Card } from '../shared';
 import { formatRatio, getBalanceLabel, getBalanceColor } from '../../utils/calculations';
+import { generateGuidance } from '../../utils/guidance';
+import { GuidanceCard } from '../guidance';
 
 interface ShotComparisonProps {
   currentShot: Shot;
@@ -15,10 +17,16 @@ export function ShotComparison({
   onMarkAsDialed,
   isDialLoading,
 }: ShotComparisonProps) {
-  const getDelta = (current: number, previous: number): string => {
+  // Generate guidance based on current and previous shot
+  const guidance = generateGuidance({
+    currentShot,
+    previousShot: previousShot || null,
+  });
+
+  const formatDelta = (current: number, previous: number, unit: string): string => {
     const diff = current - previous;
-    if (diff === 0) return '—';
-    return diff > 0 ? `+${diff}` : `${diff}`;
+    if (diff === 0) return `0${unit}`;
+    return diff > 0 ? `+${diff}${unit}` : `${diff}${unit}`;
   };
 
   return (
@@ -84,24 +92,27 @@ export function ShotComparison({
             <div>
               <span className="text-espresso-700/60 dark:text-steam-400">Yield</span>
               <p className="font-medium text-espresso-900 dark:text-steam-50">
-                {getDelta(currentShot.yieldGrams, previousShot.yieldGrams)}g
+                {formatDelta(currentShot.yieldGrams, previousShot.yieldGrams, 'g')}
               </p>
             </div>
             <div>
               <span className="text-espresso-700/60 dark:text-steam-400">Time</span>
               <p className="font-medium text-espresso-900 dark:text-steam-50">
-                {getDelta(currentShot.timeSeconds, previousShot.timeSeconds)}s
+                {formatDelta(currentShot.timeSeconds, previousShot.timeSeconds, 's')}
               </p>
             </div>
             <div>
-              <span className="text-espresso-700/60 dark:text-steam-400">Taste</span>
-              <p className={`font-medium ${getBalanceColor(currentShot.taste.balance)}`}>
-                {getBalanceLabel(currentShot.taste.balance)}
+              <span className="text-espresso-700/60 dark:text-steam-400">Previous</span>
+              <p className={`font-medium ${getBalanceColor(previousShot.taste.balance)}`}>
+                {getBalanceLabel(previousShot.taste.balance)}
               </p>
             </div>
           </div>
         </Card>
       )}
+
+      {/* Guidance */}
+      <GuidanceCard guidance={guidance} />
 
       {/* Mark as Dialed button */}
       {currentShot.taste.balance === 0 && onMarkAsDialed && (
@@ -130,15 +141,6 @@ export function ShotComparison({
           </svg>
           {isDialLoading ? 'Saving...' : 'Mark as Dialed'}
         </button>
-      )}
-
-      {/* Suggestion for non-balanced shots */}
-      {currentShot.taste.balance !== 0 && (
-        <p className="text-sm text-center text-espresso-700/60 dark:text-steam-300">
-          {currentShot.taste.balance < 0
-            ? 'Tasting sour? Try grinding finer or extending the shot.'
-            : 'Tasting bitter? Try grinding coarser or pulling shorter.'}
-        </p>
       )}
     </div>
   );

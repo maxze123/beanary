@@ -38,8 +38,28 @@ describe('ShotComparison', () => {
     render(<ShotComparison currentShot={current} previousShot={previous} />);
 
     expect(screen.getByText('vs Shot #1')).toBeInTheDocument();
-    expect(screen.getByText('+4g')).toBeInTheDocument(); // yield delta
-    expect(screen.getByText('+2s')).toBeInTheDocument(); // time delta
+    expect(screen.getByText('+4g')).toBeInTheDocument();
+    expect(screen.getByText('+2s')).toBeInTheDocument();
+  });
+
+  it('shows 0g for unchanged yield', () => {
+    const current = createMockShot({ shotNumber: 2, yieldGrams: 36 });
+    const previous = createMockShot({ shotNumber: 1, yieldGrams: 36 });
+
+    render(<ShotComparison currentShot={current} previousShot={previous} />);
+
+    expect(screen.getByText('0g')).toBeInTheDocument();
+  });
+
+  it('shows previous shot taste in comparison', () => {
+    const current = createMockShot({ shotNumber: 2, taste: { balance: 0 } });
+    const previous = createMockShot({ shotNumber: 1, taste: { balance: -1 } });
+
+    render(<ShotComparison currentShot={current} previousShot={previous} />);
+
+    // Should show "Slightly Sour" as the previous taste
+    expect(screen.getByText('Previous')).toBeInTheDocument();
+    expect(screen.getByText('Slightly Sour')).toBeInTheDocument();
   });
 
   it('shows "Mark as Dialed" button for balanced shots', () => {
@@ -55,18 +75,12 @@ describe('ShotComparison', () => {
     expect(handleDial).toHaveBeenCalled();
   });
 
-  it('shows suggestion for sour shots', () => {
-    const shot = createMockShot({ taste: { balance: -1 } });
+  it('shows guidance card', () => {
+    const shot = createMockShot({ taste: { balance: -1 }, timeSeconds: 18 });
     render(<ShotComparison currentShot={shot} />);
 
-    expect(screen.getByText(/grinding finer/)).toBeInTheDocument();
-  });
-
-  it('shows suggestion for bitter shots', () => {
-    const shot = createMockShot({ taste: { balance: 1 } });
-    render(<ShotComparison currentShot={shot} />);
-
-    expect(screen.getByText(/grinding coarser/)).toBeInTheDocument();
+    // Should show guidance for sour + fast shot
+    expect(screen.getByText('Grind finer')).toBeInTheDocument();
   });
 
   it('does not show "Mark as Dialed" for non-balanced shots', () => {
