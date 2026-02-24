@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useBeanStore } from '../stores/beanStore';
+import { useShotStore } from '../stores/shotStore';
 import { getShotsForBean } from '../db';
 import { BeanRecipe, BeanForm, ShotList } from '../components/bean';
 import {
@@ -15,6 +16,7 @@ export function BeanDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { currentBean, loadBean, editBean, removeBean, isLoading } = useBeanStore();
+  const { removeShot } = useShotStore();
 
   const [shots, setShots] = useState<Shot[]>([]);
   const [isEditing, setIsEditing] = useState(false);
@@ -164,7 +166,15 @@ export function BeanDetail() {
             )}
 
             {/* Shot History */}
-            <ShotList shots={shots} />
+            <ShotList
+              shots={shots}
+              beanId={currentBean.id}
+              onDeleteShot={async (shotId) => {
+                await removeShot(shotId, currentBean.id);
+                const updatedShots = await getShotsForBean(currentBean.id);
+                setShots(updatedShots);
+              }}
+            />
           </>
         )}
       </main>

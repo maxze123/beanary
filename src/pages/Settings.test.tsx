@@ -24,6 +24,13 @@ vi.mock('../stores/shotStore', () => ({
   }),
 }));
 
+vi.mock('../stores/themeStore', () => ({
+  useThemeStore: () => ({
+    mode: 'system',
+    setMode: vi.fn(),
+  }),
+}));
+
 describe('Settings', () => {
   beforeEach(() => {
     vi.clearAllMocks();

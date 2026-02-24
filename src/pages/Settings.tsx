@@ -1,16 +1,29 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Button, Card, ConfirmModal } from '../components/shared';
 import { exportData, downloadExport } from '../utils/export';
+import { previewImport, importData, readFileAsJSON } from '../utils/import';
+import type { ImportPreview } from '../utils/import';
 import { resetDatabase } from '../db';
 import { useBeanStore } from '../stores/beanStore';
 import { useShotStore } from '../stores/shotStore';
+import { useThemeStore } from '../stores/themeStore';
+import type { DataExport } from '../types';
 
 export function Settings() {
   const [isExporting, setIsExporting] = useState(false);
   const [showClearModal, setShowClearModal] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
+
+  // Import state
+  const [importPreview, setImportPreview] = useState<ImportPreview | null>(null);
+  const [importFile, setImportFile] = useState<DataExport | null>(null);
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const { loadBeans } = useBeanStore();
   const { clearShots } = useShotStore();
+  const { mode, setMode } = useThemeStore();
 
   const handleExport = async () => {
     setIsExporting(true);
@@ -21,6 +34,52 @@ export function Settings() {
       console.error('Export failed:', e);
     } finally {
       setIsExporting(false);
+    }
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const data = await readFileAsJSON(file);
+      const preview = previewImport(data);
+      setImportPreview(preview);
+
+      if (preview.isValid) {
+        setImportFile(data as DataExport);
+        setShowImportModal(true);
+      }
+    } catch (err) {
+      setImportPreview({
+        isValid: false,
+        error: 'Failed to read file',
+        beanCount: 0,
+        shotCount: 0,
+      });
+    }
+
+    // Reset input so same file can be selected again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleImport = async () => {
+    if (!importFile) return;
+
+    setIsImporting(true);
+    try {
+      await importData(importFile);
+      clearShots();
+      await loadBeans();
+      setShowImportModal(false);
+      setImportFile(null);
+      setImportPreview(null);
+    } catch (e) {
+      console.error('Import failed:', e);
+    } finally {
+      setIsImporting(false);
     }
   };
 
@@ -43,11 +102,35 @@ export function Settings() {
       <header className="px-5 pt-12 pb-4">
         <h1 className="text-2xl font-semibold">Settings</h1>
         <p className="text-sm text-espresso-700/70 dark:text-steam-200 mt-1">
-          Manage your data
+          Manage your data and preferences
         </p>
       </header>
 
       <main className="px-4 pb-4 space-y-4">
+        {/* Theme Selection */}
+        <Card>
+          <h2 className="font-medium text-espresso-900 dark:text-steam-50 mb-3">
+            Appearance
+          </h2>
+          <div className="flex gap-2">
+            {(['light', 'dark', 'system'] as const).map((option) => (
+              <button
+                key={option}
+                onClick={() => setMode(option)}
+                className={`
+                  flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors
+                  ${mode === option
+                    ? 'bg-caramel-500 text-white'
+                    : 'bg-crema-100 dark:bg-roast-800 text-espresso-700 dark:text-steam-200'
+                  }
+                `}
+              >
+                {option.charAt(0).toUpperCase() + option.slice(1)}
+              </button>
+            ))}
+          </div>
+        </Card>
+
         {/* Data Management */}
         <Card>
           <h2 className="font-medium text-espresso-900 dark:text-steam-50 mb-3">
@@ -65,6 +148,29 @@ export function Settings() {
             >
               {isExporting ? 'Exporting...' : 'Export Data (JSON)'}
             </Button>
+
+            {/* Hidden file input */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".json,application/json"
+              onChange={handleFileSelect}
+              className="hidden"
+            />
+
+            <Button
+              variant="secondary"
+              className="w-full"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              Import Data
+            </Button>
+
+            {/* Import error display */}
+            {importPreview && !importPreview.isValid && (
+              <p className="text-sm text-red-500 mt-2">{importPreview.error}</p>
+            )}
+
             <Button
               variant="ghost"
               className="w-full text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10"
@@ -84,9 +190,7 @@ export function Settings() {
             <p>
               Beanary helps you dial in your espresso by tracking shots and remembering what worked.
             </p>
-            <p>
-              Version 0.1.0 (Phase 0 Beta)
-            </p>
+            <p>Version 0.2.0 (Phase 0 Beta)</p>
           </div>
         </Card>
 
@@ -135,6 +239,21 @@ export function Settings() {
           </p>
         </Card>
       </main>
+
+      {/* Import Confirmation Modal */}
+      <ConfirmModal
+        isOpen={showImportModal}
+        onClose={() => {
+          setShowImportModal(false);
+          setImportFile(null);
+        }}
+        onConfirm={handleImport}
+        title="Import Data?"
+        message={`This will replace all your current data with:\n\n• ${importPreview?.beanCount || 0} beans\n• ${importPreview?.shotCount || 0} shots\n\nExported on: ${importPreview?.exportDate ? new Date(importPreview.exportDate).toLocaleDateString() : 'Unknown'}\n\nThis action cannot be undone.`}
+        confirmLabel={isImporting ? 'Importing...' : 'Replace All Data'}
+        cancelLabel="Cancel"
+        variant="danger"
+      />
 
       {/* Clear Data Confirmation */}
       <ConfirmModal

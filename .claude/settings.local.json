@@ -11,7 +11,8 @@
       "Bash(cd /c/Users/Max/Documents/Projects/DialInApp && echo \"=== LINT ===\" && npm run lint 2>&1 && echo \"=== TEST ===\" && npm run test:run 2>&1 && echo \"=== BUILD ===\" && npm run build 2>&1)",
       "Bash(cd /c/Users/Max/Documents/Projects/DialInApp && npx tsc --noEmit 2>&1)",
       "Bash(tail:*)",
-      "Bash(cd /c/Users/Max/Documents/Projects/DialInApp && npm run lint 2>&1 && npm run build 2>&1)"
+      "Bash(cd /c/Users/Max/Documents/Projects/DialInApp && npm run lint 2>&1 && npm run build 2>&1)",
+      "Bash(cd /c/Users/Max/Documents/Projects/DialInApp && gh api repos/maxze123/DialInApp/pages 2>&1)"
     ]
   }
 }

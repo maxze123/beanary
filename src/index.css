@@ -10,6 +10,10 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+#root {
+  padding-top: env(safe-area-inset-top);
+}
+
 /* Safe area utilities for iOS */
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom, 0);

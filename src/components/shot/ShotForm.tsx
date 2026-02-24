@@ -3,13 +3,17 @@ import { Button, Input, TasteSlider } from '../shared';
 import { calculateRatio, formatRatio } from '../../utils/calculations';
 import type { CreateShotInput, BalanceValue, Shot } from '../../types';
 
-type ShotPrefill = Pick<Shot, 'doseGrams' | 'yieldGrams' | 'timeSeconds' | 'grindSetting'>;
+export type ShotPrefill = Pick<Shot, 'doseGrams' | 'yieldGrams' | 'timeSeconds' | 'grindSetting'> & {
+  taste?: { balance: BalanceValue };
+  notes?: string;
+};
 
 interface ShotFormProps {
   beanId: string;
   previousShot?: ShotPrefill | null;
   onSubmit: (input: CreateShotInput) => void;
   onCancel?: () => void;
+  submitLabel?: string;
   isLoading?: boolean;
 }
 
@@ -18,6 +22,7 @@ export function ShotForm({
   previousShot,
   onSubmit,
   onCancel,
+  submitLabel = 'Log Shot',
   isLoading = false,
 }: ShotFormProps) {
   // Pre-fill from previous shot if available
@@ -25,8 +30,8 @@ export function ShotForm({
   const [yieldGrams, setYieldGrams] = useState(previousShot?.yieldGrams?.toString() || '');
   const [timeSeconds, setTimeSeconds] = useState(previousShot?.timeSeconds?.toString() || '');
   const [grindSetting, setGrindSetting] = useState(previousShot?.grindSetting || '');
-  const [balance, setBalance] = useState<BalanceValue>(0);
-  const [notes, setNotes] = useState('');
+  const [balance, setBalance] = useState<BalanceValue>(previousShot?.taste?.balance ?? 0);
+  const [notes, setNotes] = useState(previousShot?.notes || '');
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -182,7 +187,7 @@ export function ShotForm({
           </Button>
         )}
         <Button type="submit" disabled={isLoading} className="flex-1">
-          {isLoading ? 'Saving...' : 'Log Shot'}
+          {isLoading ? 'Saving...' : submitLabel}
         </Button>
       </div>
     </form>
