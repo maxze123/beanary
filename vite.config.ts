@@ -17,8 +17,8 @@ export default defineConfig({
         background_color: '#faf8f5',
         display: 'standalone',
         orientation: 'portrait',
-        scope: '/',
-        start_url: '/',
+        scope: '/beanary/',
+        start_url: '/beanary/',
         icons: [
           {
             src: 'icons/icon-192.png',
